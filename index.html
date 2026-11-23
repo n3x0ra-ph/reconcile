@@ -5,15 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Nexora Reconcile</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 html{color-scheme:light}body{margin:0}[hidden]{display:none!important}
 /* Layout: a working ledger — inputs strip, summary row, then one tabbed register. Accent = ledger teal; review = amber, unmatched = brick. */
 :root{
   --paper:#f6f7f5; --sheet:#ffffff; --ink:#18201d; --muted:#5d6a64; --rule:#dfe4e1;
   --accent:#0f6b5c; --accent-soft:#e3f0ec; --warn:#9a5b00; --warn-soft:#fbf0dc; --bad:#a23b2a; --bad-soft:#f8e6e2; --good:#1f7a43; --good-soft:#e4f2e8;
-  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif; --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif; --mono:ui-monospace,"SFMono-Regular","Cascadia Mono","Segoe UI Mono",Menlo,Consolas,monospace;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --paper:#111614; --sheet:#171e1b; --ink:#e7ece9; --muted:#9aa8a2; --rule:#2a3430;
@@ -129,7 +127,7 @@ td.mono{font-family:var(--mono);font-size:12px;white-space:nowrap}
     <div class="btns"><a class="fb" id="fb" href="https://forms.gle/N4Rm6i2TjAMdYoBW9" target="_blank" rel="noopener">Send feedback (2 min)</a><button id="copy">Copy report (CSV)</button><button id="dl" hidden>Download report (CSV)</button></div>
   </div>
 </div>
-<p class="privnote">Privacy: your files are read only by your own browser and are never uploaded. We count page visits with cookie-free Cloudflare Web Analytics; no personal data or file contents are collected.</p>
+<p class="privnote">Privacy: your files are read only by your own browser and are never uploaded. We count page visits with cookie-free Cloudflare Web Analytics, which sees your IP address and browser type like any website host; no file contents or cookies are collected. GitHub, which hosts this page, also receives standard visit logs.</p>
 <div class="toast" id="toast" hidden></div>
 
 <script>
@@ -315,7 +313,7 @@ wire('dropPay', 'filePay', async fl => { const fs = await readFiles(fl); leaveSa
 $('run').addEventListener('click', run);
 $('sample').addEventListener('click', () => { Object.assign(state, { invText: SAMPLE.invoices, payTexts: SAMPLE.payments, isSample: true }); state.confirmed.clear(); state.rejected.clear(); $('invName').textContent = 'sample: invoices.csv'; $('payName').textContent = 'sample: ' + SAMPLE.payments.map(f=>f.name).join(', '); run(); });
 function reportCSV(){
-  const q = v => `"${String(v ?? '').replace(/"/g,'""')}"`;
+  const q = v => { let t = String(v ?? ''); if (/^[=+\-@\t\r]/.test(t) && !/^-?\d+(\.\d+)?$/.test(t)) t = "'" + t; return `"${t.replace(/"/g,'""')}"`; };
   const lines = [['section','date','source','row','description','amount','invoice_nos','result','note'].join(',')];
   state.out.results.forEach(r => lines.push([r.status, NX.iso(r.p.date), r.p.source, r.p.row, r.p.desc, r.p.amount.toFixed(2), r.invoices.map(i=>i.no).join(';'), KIND[r.kind]||r.kind, r.note].map(q).join(',')));
   state.out.outstanding.forEach(i => lines.push(['still_owed', NX.iso(i.date), 'invoices', '', i.customer, i.open.toFixed(2), i.no, 'Still owed', `Invoice total ${i.amount.toFixed(2)}`].map(q).join(',')));
